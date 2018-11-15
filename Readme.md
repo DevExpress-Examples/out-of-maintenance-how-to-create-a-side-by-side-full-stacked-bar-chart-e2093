@@ -1,3 +1,8 @@
+<!-- default file list -->
+*Files to look at*:
+
+* [Form1.cs](./CS/SideBySideFullStackedBarChart/Form1.cs) (VB: [Form1.vb](./VB/SideBySideFullStackedBarChart/Form1.vb))
+<!-- default file list end -->
 # How to create a Side-by-Side Full-Stacked Bar chart
 
 
