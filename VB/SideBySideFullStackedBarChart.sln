@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SideBySideFullStackedBarChart", "SideBySideFullStackedBarChart\SideBySideFullStackedBarChart.vbproj", "{527C960C-B8FC-4739-A7BC-0F9B6C3DF296}"
 EndProject

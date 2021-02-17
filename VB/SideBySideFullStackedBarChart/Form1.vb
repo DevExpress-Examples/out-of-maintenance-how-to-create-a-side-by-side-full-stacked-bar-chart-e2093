@@ -1,69 +1,67 @@
 ﻿Imports System
+Imports System.Collections
+Imports System.Data
+Imports System.IO
+Imports System.Linq
 Imports System.Windows.Forms
+Imports System.Xml.Linq
 Imports DevExpress.XtraCharts
 ' ...
 
 Namespace SideBySideFullStackedBarChart
-    Partial Public Class Form1
-        Inherits Form
+	Partial Public Class Form1
+		Inherits Form
 
-        Public Sub New()
-            InitializeComponent()
-        End Sub
+		Private stackedBarChart As ChartControl
+		Public Sub New()
+			InitializeComponent()
+		End Sub
+		Private Sub Form1_Load(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
+			' Create a new chart.
+			stackedBarChart = New ChartControl()
+			stackedBarChart.DataSource = AgeStructureDataReader.GetDataByAgeAndGender()
+			stackedBarChart.SeriesTemplate.SeriesDataMember = "GenderAge"
+			stackedBarChart.SeriesTemplate.ArgumentDataMember = "Country"
+			stackedBarChart.SeriesTemplate.ValueDataMembers.AddRange("Population")
 
-        Private Sub Form1_Load(ByVal sender As Object, ByVal e As EventArgs) Handles MyBase.Load
-            ' Create a new chart.
-            Dim stackedBarChart As New ChartControl()
+			stackedBarChart.SeriesTemplate.View = New SideBySideFullStackedBarSeriesView()
 
-            ' Create four side-by-side full-stacked bar series.
-            Dim series1 As New Series("Series 1", ViewType.SideBySideFullStackedBar)
-            Dim series2 As New Series("Series 2", ViewType.SideBySideFullStackedBar)
-            Dim series3 As New Series("Series 3", ViewType.SideBySideFullStackedBar)
-            Dim series4 As New Series("Series 4", ViewType.SideBySideFullStackedBar)
+			AddHandler stackedBarChart.BoundDataChanged, AddressOf Me.OnChartBoundDataChanged
 
-            ' Add points to them
-            series1.Points.Add(New SeriesPoint("A", 10))
-            series1.Points.Add(New SeriesPoint("B", 12))
-            series1.Points.Add(New SeriesPoint("C", 14))
-            series1.Points.Add(New SeriesPoint("D", 17))
+			' Access the type-specific options of the diagram.
+			Dim diagram As XYDiagram = CType(stackedBarChart.Diagram, XYDiagram)
+			diagram.Rotated = True
+			diagram.AxisY.Label.TextPattern = "{VP:P}"
+			diagram.AxisY.WholeRange.AutoSideMargins = False
+			diagram.AxisY.WholeRange.SideMarginsValue = 0
 
-            series2.Points.Add(New SeriesPoint("A", 5))
-            series2.Points.Add(New SeriesPoint("B", 8))
-            series2.Points.Add(New SeriesPoint("C", 5))
-            series2.Points.Add(New SeriesPoint("D", 3))
+			' Hide the legend (if necessary).
+			stackedBarChart.Legend.Visibility = DevExpress.Utils.DefaultBoolean.True
+			stackedBarChart.Legend.AlignmentHorizontal = LegendAlignmentHorizontal.Center
+			stackedBarChart.Legend.AlignmentVertical = LegendAlignmentVertical.BottomOutside
+			stackedBarChart.Legend.MaxVerticalPercentage = 20
 
-            series3.Points.Add(New SeriesPoint("A", 11))
-            series3.Points.Add(New SeriesPoint("B", 13))
-            series3.Points.Add(New SeriesPoint("C", 15))
-            series3.Points.Add(New SeriesPoint("D", 18))
+			' Add a title to the chart (if necessary).
+			stackedBarChart.Titles.Add(New ChartTitle())
+			stackedBarChart.Titles(0).Text = "Population: Age-Gender Structure"
+			stackedBarChart.Titles(0).WordWrap = True
 
-            series4.Points.Add(New SeriesPoint("A", 6))
-            series4.Points.Add(New SeriesPoint("B", 9))
-            series4.Points.Add(New SeriesPoint("C", 6))
-            series4.Points.Add(New SeriesPoint("D", 4))
-
-            ' Add all series to the chart.
-            stackedBarChart.Series.AddRange(New Series() { series1, series2, series3, series4 })
-
-            ' Group the first two series under the same stack.
-            CType(series1.View, SideBySideFullStackedBarSeriesView).StackedGroup = 0
-            CType(series2.View, SideBySideFullStackedBarSeriesView).StackedGroup = 0
-
-            ' Access the type-specific options of the diagram.
-            CType(stackedBarChart.Diagram, XYDiagram).Rotated = True
-
-            ' Hide the legend (if necessary).
-            stackedBarChart.Legend.Visibility = DevExpress.Utils.DefaultBoolean.False
-
-            ' Add a title to the chart (if necessary).
-            stackedBarChart.Titles.Add(New ChartTitle())
-            stackedBarChart.Titles(0).Text = "A Side-By-Side Full-Stacked Bar Chart"
-            stackedBarChart.Titles(0).WordWrap = True
-
-            ' Add the chart to the form.
-            stackedBarChart.Dock = DockStyle.Fill
-            Me.Controls.Add(stackedBarChart)
-        End Sub
-
-    End Class
+			' Add the chart to the form.
+			stackedBarChart.Dock = DockStyle.Fill
+			Me.Controls.Add(stackedBarChart)
+		End Sub
+		Private Sub OnChartBoundDataChanged(ByVal sender As Object, ByVal e As EventArgs)
+			For Each series As Series In stackedBarChart.Series
+				If Not (TypeOf series.Tag Is GenderAgeInfo) Then
+					Return
+				End If
+				Dim item As GenderAgeInfo = DirectCast(series.Tag, GenderAgeInfo)
+				Dim view As SideBySideFullStackedBarSeriesView = TryCast(series.View, SideBySideFullStackedBarSeriesView)
+				If view Is Nothing Then
+					Return
+				End If
+				view.StackedGroup = item.Gender
+			Next series
+		End Sub
+	End Class
 End Namespace
